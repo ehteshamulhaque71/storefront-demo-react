@@ -5,7 +5,6 @@ function OrderApprovalPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Load orders on component mount
     useEffect(() => {
         loadOrders();
     }, []);
@@ -15,7 +14,14 @@ function OrderApprovalPage() {
             setLoading(true);
             setError(null);
 
-            const response = await fetch('http://localhost:3000/api/orders');
+            // Determine API URL based on environment
+            const API_URL = window.location.port === '1234' 
+                ? 'http://localhost:3000' 
+                : '';
+
+            console.log('Fetching from:', API_URL + '/api/orders');
+
+            const response = await fetch(`${API_URL}/api/orders`);
             
             if (!response.ok) {
                 throw new Error('Failed to fetch orders');
@@ -39,7 +45,12 @@ function OrderApprovalPage() {
         }
 
         try {
-            const response = await fetch(`http://localhost:3000/api/orders/${orderId}/approve`, {
+            // Determine API URL based on environment
+            const API_URL = window.location.port === '1234' 
+                ? 'http://localhost:3000' 
+                : '';
+
+            const response = await fetch(`${API_URL}/api/orders/${orderId}/approve`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -70,7 +81,12 @@ function OrderApprovalPage() {
         }
 
         try {
-            const response = await fetch(`http://localhost:3000/api/orders/${orderId}/decline`, {
+            // Determine API URL based on environment
+            const API_URL = window.location.port === '1234' 
+                ? 'http://localhost:3000' 
+                : '';
+
+            const response = await fetch(`${API_URL}/api/orders/${orderId}/decline`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -95,20 +111,17 @@ function OrderApprovalPage() {
         }
     }
 
-    function formatDate(timestamp) {
-        return new Date(timestamp).toLocaleString();
-    }
-
-    // Filter only pending orders
     const pendingOrders = orders.filter(order => order.status === 'pending');
 
     if (loading) {
         return (
-            <div className="container my-5 text-center">
-                <div className="spinner-border text-primary" role="status">
-                    <span className="visually-hidden">Loading...</span>
+            <div className="container my-5">
+                <div className="text-center">
+                    <div className="spinner-border" role="status">
+                        <span className="visually-hidden">Loading...</span>
+                    </div>
+                    <p className="mt-3">Loading orders...</p>
                 </div>
-                <p className="mt-3">Loading pending orders...</p>
             </div>
         );
     }
@@ -119,146 +132,128 @@ function OrderApprovalPage() {
                 <div className="alert alert-danger" role="alert">
                     <h4 className="alert-heading">Error Loading Orders</h4>
                     <p>{error}</p>
-                    <hr />
-                    <p className="mb-0">
-                        <button className="btn btn-danger" onClick={loadOrders}>
-                            Try Again
-                        </button>
-                    </p>
+                    <button className="btn btn-danger" onClick={loadOrders}>
+                        Try Again
+                    </button>
                 </div>
             </div>
         );
     }
 
     return (
-        <>
-            <div className="container my-5">
-                <div className="d-flex justify-content-between align-items-center mb-4">
-                    <div>
-                        <h2>Order Approval Dashboard</h2>
-                        <p className="text-muted">Admin Interface - Approve or Decline Customer Orders</p>
-                    </div>
-                    <button className="btn btn-outline-primary" onClick={loadOrders}>
-                        🔄 Refresh
-                    </button>
-                </div>
+        <div className="container my-5">
+            <div className="d-flex justify-content-between align-items-center mb-4">
+                <h1>Order Approval Dashboard</h1>
+                <button className="btn btn-primary" onClick={loadOrders}>
+                    🔄 Refresh
+                </button>
+            </div>
 
-                <div className="alert alert-info mb-4">
-                    <strong>{pendingOrders.length}</strong> pending order(s) awaiting approval
-                </div>
+            <div className="alert alert-info mb-4">
+                <strong>Pending Orders:</strong> {pendingOrders.length}
+            </div>
 
-                {pendingOrders.length === 0 ? (
-                    <div className="alert alert-success" role="alert">
-                        <h4 className="alert-heading">All Caught Up! 🎉</h4>
-                        <p>No pending orders at this time.</p>
-                        <hr />
-                        <p className="mb-0">
-                            All orders have been processed. Check back later for new orders.
-                        </p>
-                    </div>
-                ) : (
-                    pendingOrders.map(order => (
-                        <div key={order.orderId} className="card mb-4">
-                            <div className="card-header bg-warning">
-                                <div className="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h5 className="mb-0">Order #{order.orderId}</h5>
-                                        <small className="text-muted">
-                                            ⏳ Pending Approval - Submitted {formatDate(order.timestamp)}
-                                        </small>
-                                    </div>
-                                    <div>
-                                        <span className="badge bg-warning text-dark">Pending</span>
-                                    </div>
+            {pendingOrders.length === 0 ? (
+                <div className="alert alert-success">
+                    <h4>✅ All Caught Up!</h4>
+                    <p>No pending orders to review.</p>
+                </div>
+            ) : (
+                <div className="row">
+                    {pendingOrders.map(order => (
+                        <div key={order.orderId} className="col-12 mb-4">
+                            <div className="card border-warning">
+                                <div className="card-header bg-warning text-dark">
+                                    <strong>⏳ Pending Order:</strong> {order.orderId}
+                                    <br />
+                                    <small>Submitted: {new Date(order.timestamp).toLocaleString()}</small>
                                 </div>
-                            </div>
-                            <div className="card-body">
-                                <div className="row">
-                                    {/* Customer Information */}
-                                    <div className="col-md-6 mb-3">
-                                        <h6>Customer Information:</h6>
-                                        <p className="mb-1">
-                                            <strong>Name:</strong> {order.shipping.firstName} {order.shipping.lastName}
-                                        </p>
-                                        <p className="mb-1">
-                                            <strong>Email:</strong> {order.shipping.email}
-                                        </p>
-                                        <p className="mb-1">
-                                            <strong>Phone:</strong> {order.shipping.phone}
-                                        </p>
+                                <div className="card-body">
+                                    <div className="row">
+                                        {/* Customer Info */}
+                                        <div className="col-md-4">
+                                            <h6>Customer:</h6>
+                                            <p>
+                                                <strong>{order.shipping.firstName} {order.shipping.lastName}</strong><br />
+                                                📧 {order.shipping.email}<br />
+                                                📱 {order.shipping.phone}
+                                            </p>
+                                            
+                                            <h6>Shipping Address:</h6>
+                                            <p>
+                                                {order.shipping.address.line1}<br />
+                                                {order.shipping.address.line2 && <>{order.shipping.address.line2}<br /></>}
+                                                {order.shipping.address.city}, {order.shipping.address.state} {order.shipping.address.zip}
+                                            </p>
 
-                                        <h6 className="mt-3">Shipping Address:</h6>
-                                        <p className="mb-0">
-                                            {order.shipping.address.line1}<br />
-                                            {order.shipping.address.line2 && (
-                                                <>{order.shipping.address.line2}<br /></>
+                                            <h6>Payment:</h6>
+                                            <p>{order.payment.method}</p>
+                                        </div>
+
+                                        {/* Order Details */}
+                                        <div className="col-md-5">
+                                            <h6>Order Items:</h6>
+                                            <table className="table table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Item</th>
+                                                        <th>Qty</th>
+                                                        <th>Price</th>
+                                                        <th>Subtotal</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {order.items.map((item, index) => (
+                                                        <tr key={index}>
+                                                            <td>{item.title}</td>
+                                                            <td>{item.quantity}</td>
+                                                            <td>${item.price.toFixed(2)}</td>
+                                                            <td>${item.subtotal.toFixed(2)}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                                <tfoot>
+                                                    <tr>
+                                                        <th colSpan="3">Total:</th>
+                                                        <th>${order.total.toFixed(2)}</th>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+
+                                            {order.specialInstructions && (
+                                                <>
+                                                    <h6>Special Instructions:</h6>
+                                                    <p className="text-muted">{order.specialInstructions}</p>
+                                                </>
                                             )}
-                                            {order.shipping.address.city}, {order.shipping.address.state} {order.shipping.address.zip}
-                                        </p>
+                                        </div>
+
+                                        {/* Actions */}
+                                        <div className="col-md-3">
+                                            <h6>Actions:</h6>
+                                            <div className="d-grid gap-2">
+                                                <button
+                                                    className="btn btn-success"
+                                                    onClick={() => handleApprove(order.orderId)}
+                                                >
+                                                    ✅ Approve Order
+                                                </button>
+                                                <button
+                                                    className="btn btn-danger"
+                                                    onClick={() => handleDecline(order.orderId)}
+                                                >
+                                                    ❌ Decline Order
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
-
-                                    {/* Order Details */}
-                                    <div className="col-md-6 mb-3">
-                                        <h6>Order Details:</h6>
-                                        <p className="mb-1">
-                                            <strong>Order Date:</strong> {formatDate(order.timestamp)}
-                                        </p>
-                                        <p className="mb-1">
-                                            <strong>Payment Method:</strong> {order.payment.method}
-                                        </p>
-                                        <p className="mb-1">
-                                            <strong>Total Amount:</strong> <span className="text-success fw-bold">${order.total.toFixed(2)}</span>
-                                        </p>
-
-                                        <h6 className="mt-3">Items ({order.items.length}):</h6>
-                                        <ul className="list-unstyled">
-                                            {order.items.map((item, index) => (
-                                                <li key={index} className="mb-1">
-                                                    <small>
-                                                        {item.title} × {item.quantity} - ${item.subtotal.toFixed(2)}
-                                                    </small>
-                                                </li>
-                                            ))}
-                                        </ul>
-
-                                        {order.specialInstructions && (
-                                            <>
-                                                <h6 className="mt-3">Special Instructions:</h6>
-                                                <p className="text-muted small mb-0">
-                                                    {order.specialInstructions}
-                                                </p>
-                                            </>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <hr />
-
-                                {/* Action Buttons */}
-                                <div className="d-flex justify-content-end gap-2">
-                                    <button 
-                                        className="btn btn-success btn-lg"
-                                        onClick={() => handleApprove(order.orderId)}
-                                    >
-                                        ✅ Approve Order
-                                    </button>
-                                    <button 
-                                        className="btn btn-danger btn-lg"
-                                        onClick={() => handleDecline(order.orderId)}
-                                    >
-                                        ❌ Decline Order
-                                    </button>
                                 </div>
                             </div>
                         </div>
-                    ))
-                )}
-            </div>
-
-            <footer className="bg-dark text-white text-center py-3 mt-5">
-                <p className="mb-0">&copy; 2026 StoreFront | IST 256 Group Project</p>
-            </footer>
-        </>
+                    ))}
+                </div>
+            )}
+        </div>
     );
 }
 
