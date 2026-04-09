@@ -9,7 +9,7 @@ const fs = require('fs');
 const path = require('path');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // Path to orders.json file
 const ORDERS_FILE = path.join(__dirname, 'orders.json');
@@ -18,13 +18,13 @@ const ORDERS_FILE = path.join(__dirname, 'orders.json');
 // Middleware
 // ============================================
 
-// Enable CORS for React frontend
+// Enable CORS
 app.use(cors());
 
 // Parse JSON request bodies
 app.use(express.json());
 
-// Logging middleware (optional - helps with debugging)
+// Logging middleware
 app.use((req, res, next) => {
     console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
     next();
@@ -34,23 +34,14 @@ app.use((req, res, next) => {
 // File Storage Helper Functions
 // ============================================
 
-/**
- * Read orders from JSON file
- * @returns {Array} Array of order objects
- */
 function readOrders() {
     try {
-        // Check if file exists
         if (!fs.existsSync(ORDERS_FILE)) {
             console.log('📝 orders.json does not exist, creating new file...');
             writeOrders([]);
             return [];
         }
-
-        // Read file contents
         const data = fs.readFileSync(ORDERS_FILE, 'utf8');
-        
-        // Parse JSON
         const orders = JSON.parse(data);
         console.log(`✅ Read ${orders.length} orders from file`);
         return orders;
@@ -60,16 +51,9 @@ function readOrders() {
     }
 }
 
-/**
- * Write orders to JSON file
- * @param {Array} orders - Array of order objects to save
- */
 function writeOrders(orders) {
     try {
-        // Convert to JSON with pretty formatting
         const data = JSON.stringify(orders, null, 2);
-        
-        // Write to file
         fs.writeFileSync(ORDERS_FILE, data, 'utf8');
         console.log(`💾 Saved ${orders.length} orders to file`);
     } catch (error) {
@@ -77,11 +61,6 @@ function writeOrders(orders) {
     }
 }
 
-/**
- * Find order by ID
- * @param {string} orderId - Order ID to find
- * @returns {Object|null} Order object or null if not found
- */
 function findOrderById(orderId) {
     const orders = readOrders();
     return orders.find(order => order.orderId === orderId) || null;
@@ -91,46 +70,24 @@ function findOrderById(orderId) {
 // REST API Endpoints
 // ============================================
 
-/**
- * POST /api/orders
- * Create a new order
- * 
- * Request body should contain order data from finalization page:
- * {
- *   items: [...],
- *   total: 299.99,
- *   shipping: {...},
- *   payment: {...}
- * }
- */
+// Create order
 app.post('/api/orders', (req, res) => {
     try {
-        // Read existing orders
         const orders = readOrders();
-
-        // Create new order with initial status
         const newOrder = {
             orderId: 'ORD-' + Date.now(),
             ...req.body,
             status: 'pending',
             timestamp: new Date().toISOString()
         };
-
-        // Add to orders array
         orders.push(newOrder);
-
-        // Save to file
         writeOrders(orders);
-
         console.log('✅ New order created:', newOrder.orderId);
-
-        // Send response
         res.status(201).json({
             success: true,
             orderId: newOrder.orderId,
             message: 'Order received and pending approval'
         });
-
     } catch (error) {
         console.error('❌ Error creating order:', error);
         res.status(500).json({
@@ -140,19 +97,10 @@ app.post('/api/orders', (req, res) => {
     }
 });
 
-/**
- * GET /api/orders
- * Get all orders
- * 
- * Optional query parameters:
- * - status: Filter by status (pending, approved, declined)
- */
+// Get all orders
 app.get('/api/orders', (req, res) => {
     try {
-        // Read orders from file
         let orders = readOrders();
-
-        // Optional: Filter by status
         const statusFilter = req.query.status;
         if (statusFilter) {
             orders = orders.filter(order => order.status === statusFilter);
@@ -160,10 +108,7 @@ app.get('/api/orders', (req, res) => {
         } else {
             console.log(`📋 Returning all ${orders.length} orders`);
         }
-
-        // Send response
         res.json(orders);
-
     } catch (error) {
         console.error('❌ Error fetching orders:', error);
         res.status(500).json({
@@ -173,27 +118,19 @@ app.get('/api/orders', (req, res) => {
     }
 });
 
-/**
- * GET /api/orders/:orderId
- * Get a single order by ID
- */
+// Get single order
 app.get('/api/orders/:orderId', (req, res) => {
     try {
         const { orderId } = req.params;
-
-        // Find order
         const order = findOrderById(orderId);
-
         if (!order) {
             return res.status(404).json({
                 success: false,
                 message: 'Order not found'
             });
         }
-
         console.log('📦 Returning order:', orderId);
         res.json(order);
-
     } catch (error) {
         console.error('❌ Error fetching order:', error);
         res.status(500).json({
@@ -203,43 +140,27 @@ app.get('/api/orders/:orderId', (req, res) => {
     }
 });
 
-/**
- * PUT /api/orders/:orderId/approve
- * Approve an order
- */
+// Approve order
 app.put('/api/orders/:orderId/approve', (req, res) => {
     try {
         const { orderId } = req.params;
-
-        // Read all orders
         const orders = readOrders();
-
-        // Find order index
         const orderIndex = orders.findIndex(order => order.orderId === orderId);
-
         if (orderIndex === -1) {
             return res.status(404).json({
                 success: false,
                 message: 'Order not found'
             });
         }
-
-        // Update order status
         orders[orderIndex].status = 'approved';
         orders[orderIndex].approvedAt = new Date().toISOString();
-
-        // Save to file
         writeOrders(orders);
-
         console.log('✅ Order approved:', orderId);
-
-        // Send response
         res.json({
             success: true,
             message: 'Order approved successfully',
             order: orders[orderIndex]
         });
-
     } catch (error) {
         console.error('❌ Error approving order:', error);
         res.status(500).json({
@@ -249,43 +170,27 @@ app.put('/api/orders/:orderId/approve', (req, res) => {
     }
 });
 
-/**
- * PUT /api/orders/:orderId/decline
- * Decline an order
- */
+// Decline order
 app.put('/api/orders/:orderId/decline', (req, res) => {
     try {
         const { orderId } = req.params;
-
-        // Read all orders
         const orders = readOrders();
-
-        // Find order index
         const orderIndex = orders.findIndex(order => order.orderId === orderId);
-
         if (orderIndex === -1) {
             return res.status(404).json({
                 success: false,
                 message: 'Order not found'
             });
         }
-
-        // Update order status
         orders[orderIndex].status = 'declined';
         orders[orderIndex].declinedAt = new Date().toISOString();
-
-        // Save to file
         writeOrders(orders);
-
         console.log('❌ Order declined:', orderId);
-
-        // Send response
         res.json({
             success: true,
             message: 'Order declined successfully',
             order: orders[orderIndex]
         });
-
     } catch (error) {
         console.error('❌ Error declining order:', error);
         res.status(500).json({
@@ -295,41 +200,25 @@ app.put('/api/orders/:orderId/decline', (req, res) => {
     }
 });
 
-/**
- * DELETE /api/orders/:orderId
- * Delete an order (optional - for testing/cleanup)
- */
+// Delete order (optional)
 app.delete('/api/orders/:orderId', (req, res) => {
     try {
         const { orderId } = req.params;
-
-        // Read all orders
         let orders = readOrders();
-
-        // Find order
         const orderExists = orders.some(order => order.orderId === orderId);
-
         if (!orderExists) {
             return res.status(404).json({
                 success: false,
                 message: 'Order not found'
             });
         }
-
-        // Remove order
         orders = orders.filter(order => order.orderId !== orderId);
-
-        // Save to file
         writeOrders(orders);
-
         console.log('🗑️ Order deleted:', orderId);
-
-        // Send response
         res.json({
             success: true,
             message: 'Order deleted successfully'
         });
-
     } catch (error) {
         console.error('❌ Error deleting order:', error);
         res.status(500).json({
@@ -340,10 +229,21 @@ app.delete('/api/orders/:orderId', (req, res) => {
 });
 
 // ============================================
+// Serve React Frontend in Production
+// ============================================
+
+// Serve static files from dist folder
+app.use(express.static(path.join(__dirname, 'dist')));
+
+// Catch-all route - serve React app for any other route
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
+
+// ============================================
 // Error Handling
 // ============================================
 
-// 404 handler - route not found
 app.use((req, res) => {
     res.status(404).json({
         success: false,
@@ -351,7 +251,6 @@ app.use((req, res) => {
     });
 });
 
-// Global error handler
 app.use((err, req, res, next) => {
     console.error('💥 Server error:', err);
     res.status(500).json({
@@ -368,17 +267,7 @@ app.listen(PORT, () => {
     console.log('========================================');
     console.log('🚀 StoreFront Backend Server');
     console.log('========================================');
-    console.log(`✅ Server running on http://localhost:${PORT}`);
+    console.log(`✅ Server running on port ${PORT}`);
     console.log(`📁 Orders file: ${ORDERS_FILE}`);
-    console.log('');
-    console.log('📡 Available API Endpoints:');
-    console.log(`   POST   http://localhost:${PORT}/api/orders`);
-    console.log(`   GET    http://localhost:${PORT}/api/orders`);
-    console.log(`   GET    http://localhost:${PORT}/api/orders/:orderId`);
-    console.log(`   PUT    http://localhost:${PORT}/api/orders/:orderId/approve`);
-    console.log(`   PUT    http://localhost:${PORT}/api/orders/:orderId/decline`);
-    console.log(`   DELETE http://localhost:${PORT}/api/orders/:orderId`);
-    console.log('========================================');
-    console.log('Press Ctrl+C to stop the server');
     console.log('========================================');
 });
