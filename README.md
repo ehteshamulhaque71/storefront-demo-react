@@ -34,13 +34,21 @@ storefront-react/
 
 ## Installation
 
-### 1. Install Dependencies
+### 1. Change Directory to the Project Folder
+
+```bash
+cd /path/to/directory/storefront-demo-react/
+```
+
+Make sure you see the `package.json` file when you run the `ls` command.
+
+### 2. Install Dependencies
 
 ```bash
 npm install
 ```
 
-### 2. Install Backend Packages
+### 3. Install Backend Packages (optional for this project, for your own project you have to install this command so that your project.json file gets these dependencies)
 
 ```bash
 npm install express cors
