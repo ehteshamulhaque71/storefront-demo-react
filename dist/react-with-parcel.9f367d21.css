@@ -1,0 +1,215 @@
+body {
+  background-color: #f8f9fa;
+  margin: 0;
+  padding: 0;
+  font-family: Segoe UI, Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.App {
+  flex-direction: column;
+  min-height: 100vh;
+  display: flex;
+}
+
+.jumbotron {
+  background-color: #fff;
+  border-radius: .5rem;
+  margin-bottom: 2rem;
+  padding: 3rem 2rem;
+  box-shadow: 0 0 10px #0000001a;
+}
+
+.card {
+  border: 1px solid #dee2e6;
+  transition: all .3s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px #00000026;
+}
+
+.product-card {
+  cursor: pointer;
+  border-left: 4px solid #0000;
+}
+
+.product-card:hover {
+  border-left: 4px solid #0d6efd;
+}
+
+.cart-item {
+  transition: background-color .2s;
+}
+
+.cart-item:hover {
+  background-color: #f8f9fa;
+}
+
+input[type="text"].quantity-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="text"].quantity-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="text"].quantity-input {
+  -moz-appearance: textfield;
+}
+
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.btn-group {
+  display: inline-flex;
+}
+
+.btn-group .quantity-input {
+  border-left: 0;
+  border-right: 0;
+  border-radius: 0;
+}
+
+.btn-group .btn:first-child {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.btn-group .btn:last-child {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.invalid-feedback {
+  display: none;
+}
+
+.was-validated .form-control:invalid ~ .invalid-feedback, .was-validated .form-select:invalid ~ .invalid-feedback {
+  display: block;
+}
+
+.was-validated .form-control:invalid {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+  background-position: right calc(.375em + .1875rem) center;
+  background-repeat: no-repeat;
+  background-size: calc(.75em + .375rem) calc(.75em + .375rem);
+  border-color: #dc3545;
+  padding-right: calc(1.5em + .75rem);
+}
+
+.was-validated .form-control:valid {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
+  background-position: right calc(.375em + .1875rem) center;
+  background-repeat: no-repeat;
+  background-size: calc(.75em + .375rem) calc(.75em + .375rem);
+  border-color: #198754;
+  padding-right: calc(1.5em + .75rem);
+}
+
+.was-validated .form-select:invalid {
+  border-color: #dc3545;
+}
+
+.was-validated .form-select:valid {
+  border-color: #198754;
+}
+
+.spinner-border-sm {
+  border-width: .15em;
+  width: 1rem;
+  height: 1rem;
+}
+
+footer {
+  margin-top: auto;
+}
+
+.navbar-nav .nav-link.active {
+  font-weight: bold;
+}
+
+.badge {
+  padding: .25em .5em;
+  font-size: .75rem;
+}
+
+@media (width <= 768px) {
+  .jumbotron {
+    padding: 2rem 1rem;
+  }
+
+  .jumbotron h1 {
+    font-size: 2rem;
+  }
+
+  .btn-group {
+    width: 100%;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.gap-2 {
+  gap: .5rem;
+}
+
+.text-success {
+  color: #198754 !important;
+}
+
+.text-danger {
+  color: #dc3545 !important;
+}
+
+.text-muted {
+  color: #6c757d !important;
+}
+
+.card-header.bg-primary {
+  background-color: #0d6efd !important;
+}
+
+.card-header.bg-success {
+  background-color: #198754 !important;
+}
+
+.card-header.bg-info {
+  color: #000 !important;
+  background-color: #0dcaf0 !important;
+}
+
+.card-header.bg-warning {
+  color: #000 !important;
+  background-color: #ffc107 !important;
+}
+/*# sourceMappingURL=react-with-parcel.9f367d21.css.map */
